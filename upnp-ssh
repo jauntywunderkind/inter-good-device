@@ -1,0 +1,49 @@
+#!/bin/sh
+
+firstArg="$1"
+parseCombinedArg(){
+	# near to upnpc's argument order
+	# but we move the first arg 'ip' (or iface in this script) to the end
+	# since it can usually be calculated
+	IFS=- read intport extport proto duration ip sleep<<EOF
+${1:-$firstArg}
+EOF
+}
+
+defaultIp(){
+	# ip address of the default route is usually what we want
+	# https://unix.stackexchange.com/a/302613 but for ip address not device
+	ip -4 route ls | grep default | grep -Po '(?<=src )(\S+)'
+}
+
+ipAddr(){
+	# by default print the gateway interface's ip address
+	if [ -z "${1:-$ip}" ]
+	then
+		defaultIp
+		return
+	fi
+
+	# if we have an ip address, return it
+	# https://stackoverflow.com/a/13778973
+	if expr "${1:-$ip}" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null;
+	then
+		echo "${1:-$ip}"
+		return
+	fi
+
+	# not an ip, so treat as iface. print the ip address for the iface.
+	# https://unix.stackexchange.com/a/87470
+	ip -f inet addr show "${1:-$ip}" | grep -Po 'inet \K[\d.]+'
+}
+
+parseCombinedArg
+
+echo upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
+
+# set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
+# then re-run
+if [ -n "$sleep" ]
+then
+	sleep $sleep
+fi
