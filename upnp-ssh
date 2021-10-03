@@ -10,6 +10,13 @@ ${1:-$firstArg}
 EOF
 }
 
+parseOrdinalArg(){
+	# space separated args
+	IFS=' ' read intport extport proto duration ip sleep<<EOF
+${1:-$firstArg}
+EOF
+}
+
 defaultIp(){
 	# ip address of the default route is usually what we want
 	# https://unix.stackexchange.com/a/302613 but for ip address not device
@@ -41,9 +48,9 @@ parseCombinedArg
 
 #echo upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
 upnpSsh(){
-	echo upnpc -r $intport ${extport:-$intport} ${proto:-tcp}
+	${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp}
 }
-[ -z "$DRY" ] || upnpSsh
+upnpSsh
 
 # set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
 # then re-run
