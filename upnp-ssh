@@ -39,7 +39,8 @@ ipAddr(){
 
 parseCombinedArg
 
-upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
+#echo upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
+echo upnpc -r $intport ${extport:-$intport} ${proto:-tcp}
 
 # set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
 # then re-run
