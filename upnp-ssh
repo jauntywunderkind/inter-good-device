@@ -43,7 +43,7 @@ parseCombinedArg
 upnpSsh(){
 	echo upnpc -r $intport ${extport:-$intport} ${proto:-tcp}
 }
-upnpSsh
+[ -z "$DRY" ] || upnpSsh
 
 # set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
 # then re-run
