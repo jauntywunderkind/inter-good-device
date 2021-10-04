@@ -1,7 +1,11 @@
 #!/bin/sh
 
+upnpSshEchoArg(){
+	echo $intport $extport $proto $duration
+}
+
 firstArg="$1"
-parseCombinedArg(){
+upnpSshParseDashed(){
 	# near to upnpc's argument order
 	# but we move the first arg 'ip' (or iface in this script) to the end
 	# since it can usually be calculated
@@ -10,10 +14,10 @@ ${1:-$firstArg}
 EOF
 }
 
-parseOrdinalArg(){
+upnpSshParseSpaced(){
 	# space separated args
 	IFS=' ' read intport extport proto duration ip sleep<<EOF
-${1:-$firstArg}
+${*:-$firstArg}
 EOF
 }
 
@@ -44,13 +48,36 @@ ipAddr(){
 	ip -f inet addr show "${1:-$ip}" | grep -Po 'inet \K[\d.]+'
 }
 
-parseCombinedArg
-
-#echo upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
-upnpSsh(){
+upnpSshDaemon(){
 	${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp}
 }
-upnpSsh
+upnpSshService(){
+	upnpSshParseDashes $*
+	upnpSshDaemon
+}
+
+# i've found -r is easier to use but -a is precise so available here
+upnpSearchA(){
+	${DRY:+echo} upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
+}
+
+upnpSshParse(){
+	if [ "$UPNPSSH_PARSE" = "spaced" ]
+	then
+		upnpSshParseSpaced $*
+	elif [ "$$UPNPSSH_PARSE" = "none" ]
+	then
+		true
+	else
+		upnpSshParseDashed $*
+	fi
+}
+upnpSsh(){
+	upnpSshParse $*
+	upnpSshDaemon
+}
+
+[ -n "$DRY" ] || upnpSsh $*
 
 # set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
 # then re-run

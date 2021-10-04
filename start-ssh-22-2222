@@ -1,0 +1,4 @@
+#!/bin/sh
+
+DRY=1 source upnp-ssh
+echo upnpSsh ${1:-${intport:-22}} ${2:-${extport:-2222}} ${3:-${proto:-tcp}}
