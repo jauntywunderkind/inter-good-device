@@ -1,0 +1,14 @@
+[Unit]
+Description=inter-good-device timer to restart regularly
+
+[Timer]
+#Unit=
+# slop
+AccuracySec=10m
+Persistent=true
+# up to 30m delay
+OnUnitActiveSec=10m
+RandomizedDelaySec=20m
+
+[Install]
+WantedBy=timers.target
