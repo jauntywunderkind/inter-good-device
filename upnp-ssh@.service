@@ -1,0 +1,10 @@
+[Unit]
+Description=inter-good-device service instance
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/inter-good-device %s
+Environment=UPNPSSH_PARSE=dashed
+
+[Install]
+WantedBy=default.target
