@@ -62,14 +62,14 @@ upnpSearchA(){
 }
 
 upnpSshParse(){
-	if [ "$UPNPSSH_PARSE" = "spaced" ]
+	if [ "$UPNPSSH_PARSE" = "dashed" ]
+		upnpSshParseDashed $*
 	then
-		upnpSshParseSpaced $*
 	elif [ "$$UPNPSSH_PARSE" = "none" ]
 	then
 		true
 	else
-		upnpSshParseDashed $*
+		upnpSshParseSpaced $*
 	fi
 }
 upnpSsh(){
