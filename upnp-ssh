@@ -49,7 +49,7 @@ ipAddr(){
 }
 
 upnpSshDaemon(){
-	${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp}
+	${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp} $*
 }
 upnpSshService(){
 	upnpSshParseDashes $*
