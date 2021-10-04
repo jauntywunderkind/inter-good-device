@@ -1,0 +1,4 @@
+#!/bin/sh
+cp inter-good-device /usr/local/bin/
+cp inter-good-device@.service /usr/lib/systemd/user/
+#cp inter-good-device.timer /usr/lib/systemd/user/
