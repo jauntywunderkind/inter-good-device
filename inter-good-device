@@ -49,7 +49,7 @@ ipAddr(){
 }
 
 igdParse(){
-	if [ "$IGD_PARSE" = "dashed" ]
+	if [ "$IGD_PARSE" = "dashed" ] || [ "$#" = 1 ]
 	then
 		igdParseDashed $*
 	elif [ "$IGD_PARSE" = "none" ]
