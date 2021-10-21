@@ -63,9 +63,9 @@ upnpSearchA(){
 
 upnpSshParse(){
 	if [ "$UPNPSSH_PARSE" = "dashed" ]
-		upnpSshParseDashed $*
 	then
-	elif [ "$$UPNPSSH_PARSE" = "none" ]
+		upnpSshParseDashed $*
+	elif [ "$UPNPSSH_PARSE" = "none" ]
 	then
 		true
 	else

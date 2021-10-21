@@ -1,6 +1,0 @@
-#!/bin/sh
-
-UNIT_DIR=${UNIT_DIR:-$HOME/.config/systemd/user}
-mkdir -p $UNIT_DIR
-cp upnp-ssh@.service $UNIT_DIR/upnp-ssh@.service
-

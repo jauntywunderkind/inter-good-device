@@ -3,7 +3,7 @@ Description=inter-good-device service instance
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/inter-good-device %s
+ExecStart=/usr/bin/env inter-good-device %s
 Environment=UPNPSSH_PARSE=dashed
 
 [Install]

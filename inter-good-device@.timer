@@ -7,6 +7,7 @@ Description=inter-good-device timer to restart regularly
 AccuracySec=10m
 Persistent=true
 # up to 30m delay
+OnStartupSec=1m
 OnUnitActiveSec=10m
 RandomizedDelaySec=20m
 
