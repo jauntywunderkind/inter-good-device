@@ -49,10 +49,10 @@ ipAddr(){
 }
 
 igdParse(){
-	if [ "$UPNPSSH_PARSE" = "dashed" ]
+	if [ "$IGD_PARSE" = "dashed" ]
 	then
 		igdParseDashed $*
-	elif [ "$UPNPSSH_PARSE" = "none" ]
+	elif [ "$IGD_PARSE" = "none" ]
 	then
 		true
 	else
@@ -64,9 +64,10 @@ igdSleepMaybe(){
 
 	# set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
 	# then re-run
-	if [ -n "$sleep" ]
+	local s="${sleep:-$IGD_SLEEP}"
+	if [ -n "$s" ]
 	then
-		sleep $sleep
+		sleep $s
 	fi
 	exit "$rc"
 }
@@ -99,25 +100,25 @@ fail_if_stderr() (
 ) 3>&1
 
 igdRedirect(){
-	igdParse $*
-	fail_if_stderr ${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp} $*
-	igdSleepMaybe
+	${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp} $*
 }
 
 # i've found -r is easier to use but -a is precise so available here
 igdAdd(){
-	igdParse $*
-	fail_if_stderr ${DRY:+echo} upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
-	igdSleepMaybe
+	${DRY:+echo} upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400} $*
 }
 
 # "service" is the same as a regular redirect but defaults to dashed syntax
 igdService(){
-	IGD_PARSE="${IGD_PARSE:-dashed}" igd
+	IGD_PARSE="${IGD_PARSE:-dashed}" igdParse $*
+	fail_if_stderr igdRedirect
+	igdSleepMaybe
 }
 
 igd(){
-	igdRedirect $*
+	igdParse $*
+	fail_if_stderr igdRedirect
+	igdSleepMaybe
 }
 
 [ -n "$SOURCE_ONLY" ] || igd $*
