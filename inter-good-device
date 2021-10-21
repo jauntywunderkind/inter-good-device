@@ -1,11 +1,11 @@
 #!/bin/sh
 
-upnpSshEchoArg(){
+igdEchoArg(){
 	echo $intport $extport $proto $duration
 }
 
 firstArg="$1"
-upnpSshParseDashed(){
+igdParseDashed(){
 	# near to upnpc's argument order
 	# but we move the first arg 'ip' (or iface in this script) to the end
 	# since it can usually be calculated
@@ -14,7 +14,7 @@ ${1:-$firstArg}
 EOF
 }
 
-upnpSshParseSpaced(){
+igdParseSpaced(){
 	# space separated args
 	IFS=' ' read intport extport proto duration ip sleep<<EOF
 ${*:-$firstArg}
@@ -48,6 +48,29 @@ ipAddr(){
 	ip -f inet addr show "${1:-$ip}" | grep -Po 'inet \K[\d.]+'
 }
 
+igdParse(){
+	if [ "$UPNPSSH_PARSE" = "dashed" ]
+	then
+		igdParseDashed $*
+	elif [ "$UPNPSSH_PARSE" = "none" ]
+	then
+		true
+	else
+		igdParseSpaced $*
+	fi
+}
+igdSleepMaybe(){
+	local rc="$?"
+
+	# set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
+	# then re-run
+	if [ -n "$sleep" ]
+	then
+		sleep $sleep
+	fi
+	exit "$rc"
+}
+
 # via https://unix.stackexchange.com/a/639951
 fail_if_stderr() (
   # save current options
@@ -75,43 +98,26 @@ fail_if_stderr() (
   [ "$err_in_stderr" -ne 0 ] || exit 125
 ) 3>&1
 
-upnpSshDaemon(){
+igdRedirect(){
+	igdParse $*
 	fail_if_stderr ${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp} $*
-}
-
-upnpSshService(){
-	upnpSshParseDashes $*
-	upnpSshDaemon
+	igdSleepMaybe
 }
 
 # i've found -r is easier to use but -a is precise so available here
-upnpSearchA(){
-	${DRY:+echo} upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
+igdAdd(){
+	igdParse $*
+	fail_if_stderr ${DRY:+echo} upnpc -a $(ipAddr) $intport $extport ${proto:-tcp} ${duration:-86400}
+	igdSleepMaybe
 }
 
-upnpSshParse(){
-	if [ "$UPNPSSH_PARSE" = "dashed" ]
-	then
-		upnpSshParseDashed $*
-	elif [ "$UPNPSSH_PARSE" = "none" ]
-	then
-		true
-	else
-		upnpSshParseSpaced $*
-	fi
-}
-upnpSsh(){
-	upnpSshParse $*
-	upnpSshDaemon
-	local rc="$?"
-
-	# set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
-	# then re-run
-	if [ -n "$sleep" ]
-	then
-		sleep $sleep
-	fi
-	exit "$rc"
+# "service" is the same as a regular redirect but defaults to dashed syntax
+igdService(){
+	IGD_PARSE="${IGD_PARSE:-dashed}" igd
 }
 
-[ -n "$SOURCE_ONLY" ] || upnpSsh $*
+igd(){
+	igdRedirect $*
+}
+
+[ -n "$SOURCE_ONLY" ] || igd $*
