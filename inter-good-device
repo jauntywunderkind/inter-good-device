@@ -48,9 +48,37 @@ ipAddr(){
 	ip -f inet addr show "${1:-$ip}" | grep -Po 'inet \K[\d.]+'
 }
 
+# via https://unix.stackexchange.com/a/639951
+fail_if_stderr() (
+  # save current options
+  bash_options="${-}"
+
+  # disable exit on error
+  set +o errexit
+
+  # Save return code of command in rc
+  rc=$({
+    ("$@" 2>&1 >&3 3>&- 4>&-; echo "$?" >&4) |
+    grep '^' >&2 3>&- 4>&-
+  } 4>&1)
+
+  # Save return code of grep in err_in_stderr
+  err_in_stderr=$?
+
+  # enable exit on error if it was previously enabled
+  test "${bash_options#*e*}" != "$bash_options" && set -o errexit
+
+  # exit with original return code if it's not zero
+  [ "$rc" -eq 0 ] || exit "$rc"
+
+  # exit with return code 125 if something was in stderr
+  [ "$err_in_stderr" -ne 0 ] || exit 125
+) 3>&1
+
 upnpSshDaemon(){
-	${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp} $*
+	fail_if_stderr ${DRY:+echo} upnpc -r $intport ${extport:-$intport} ${proto:-tcp} $*
 }
+
 upnpSshService(){
 	upnpSshParseDashes $*
 	upnpSshDaemon
@@ -75,13 +103,15 @@ upnpSshParse(){
 upnpSsh(){
 	upnpSshParse $*
 	upnpSshDaemon
+	local rc="$?"
+
+	# set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
+	# then re-run
+	if [ -n "$sleep" ]
+	then
+		sleep $sleep
+	fi
+	exit "$rc"
 }
 
-[ -n "$DRY" ] || upnpSsh $*
-
-# set a sleep parameter when running as a restarting service, to make the script stay open a certain amount of time
-# then re-run
-if [ -n "$sleep" ]
-then
-	sleep $sleep
-fi
+[ -n "$SOURCE_ONLY" ] || upnpSsh $*
