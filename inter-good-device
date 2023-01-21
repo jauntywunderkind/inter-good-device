@@ -1,7 +1,11 @@
 #!/bin/sh
 
 igdEchoArg(){
-	echo $intport $extport $proto $duration
+	echo $intport $extport $proto $duration $ip
+}
+
+igdVerboseEchoArg(){
+	echo intport:$intport extport:$extport proto:$proto duration:$duration ip:$ip
 }
 
 firstArg="$1"
