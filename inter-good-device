@@ -28,7 +28,7 @@ EOF
 defaultIp(){
 	# ip address of the default route is usually what we want
 	# https://unix.stackexchange.com/a/302613 but for ip address not device
-	ip -4 route ls | grep default | grep -Po '(?<=src )(\S+)'
+	ip -4 route ls | grep default | head -n1 | grep -Po '(?<=src )(\S+)'
 }
 
 ipAddr(){
